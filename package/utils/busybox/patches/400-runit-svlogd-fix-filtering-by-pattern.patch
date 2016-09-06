@@ -1,0 +1,35 @@
+--- a/runit/svlogd.c
++++ b/runit/svlogd.c
+@@ -1002,7 +1002,7 @@ static void sig_hangup_handler(int sig_n
+ 	reopenasap = 1;
+ }
+ 
+-static void logmatch(struct logdir *ld)
++static void logmatch(struct logdir *ld, char *lineptr)
+ {
+ 	char *s;
+ 
+@@ -1013,12 +1013,12 @@ static void logmatch(struct logdir *ld)
+ 		switch (s[0]) {
+ 		case '+':
+ 		case '-':
+-			if (pmatch(s+1, line, linelen))
++			if (pmatch(s+1, lineptr, linelen))
+ 				ld->match = s[0];
+ 			break;
+ 		case 'e':
+ 		case 'E':
+-			if (pmatch(s+1, line, linelen))
++			if (pmatch(s+1, lineptr, linelen))
+ 				ld->matcherr = s[0];
+ 			break;
+ 		}
+@@ -1173,7 +1173,7 @@ int svlogd_main(int argc, char **argv)
+ 			if (ld->fddir == -1)
+ 				continue;
+ 			if (ld->inst)
+-				logmatch(ld);
++				logmatch(ld, lineptr);
+ 			if (ld->matcherr == 'e') {
+ 				/* runit-1.8.0 compat: if timestamping, do it on stderr too */
+ 				////full_write(STDERR_FILENO, printptr, printlen);
