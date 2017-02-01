@@ -241,14 +241,6 @@ static struct gpio_led tl_wr842n_v3_leds_gpio[] __initdata = {
 		.gpio		= TL_WR842NV3_GPIO_LED_LAN4,
 		.active_low	= 1,
 	}, {
-		.name		= "tp-link:green:wan",
-		.gpio		= TL_WR842NV3_GPIO_LED_WAN_GREEN,
-		.active_low	= 1,
-	}, {
-		.name		= "tp-link:red:wan",
-		.gpio		= TL_WR842NV3_GPIO_LED_WAN_RED,
-		.active_low	= 1,
-	}, {
 		.name		= "tp-link:green:wlan",
 		.gpio		= TL_WR842NV3_GPIO_LED_WLAN,
 		.active_low	= 1,
