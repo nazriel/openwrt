@@ -1,0 +1,118 @@
+--- a/runit/svlogd.c
++++ b/runit/svlogd.c
+@@ -126,7 +126,7 @@ log message, you can use a pattern like
+ */
+ 
+ //usage:#define svlogd_trivial_usage
+-//usage:       "[-ttv] [-r C] [-R CHARS] [-l MATCHLEN] [-b BUFLEN] DIR..."
++//usage:       "[-mttv] [-r C] [-R CHARS] [-l MATCHLEN] [-b BUFLEN] DIR..."
+ //usage:#define svlogd_full_usage "\n\n"
+ //usage:       "Continuously read log data from stdin and write to rotated log files in DIRs"
+ //usage:   "\n"
+@@ -200,6 +200,7 @@ struct globals {
+ 	unsigned dirn;
+ 
+ 	sigset_t blocked_sigset;
++	unsigned monotonic;
+ };
+ #define G (*ptr_to_globals)
+ #define dir            (G.dir           )
+@@ -222,6 +223,7 @@ struct globals {
+ #define blocked_sigset (G.blocked_sigset)
+ #define fl_flag_0      (G.fl_flag_0     )
+ #define dirn           (G.dirn          )
++#define monotonic      (G.monotonic     )
+ #define INIT_G() do { \
+ 	SET_PTR_TO_GLOBALS(xzalloc(sizeof(G))); \
+ 	linemax = 1000; \
+@@ -353,18 +355,31 @@ static void fmt_time_bernstein_25(char *
+ {
+ 	uint32_t pack[3];
+ 	struct timeval tv;
++	struct timespec ts;
+ 	unsigned sec_hi;
+ 
+-	gettimeofday(&tv, NULL);
+-	sec_hi = (0x400000000000000aULL + tv.tv_sec) >> 32;
+-	tv.tv_sec = (time_t)(0x400000000000000aULL) + tv.tv_sec;
+-	tv.tv_usec *= 1000;
+-	/* Network order is big-endian: most significant byte first.
+-	 * This is exactly what we want here */
+-	pack[0] = htonl(sec_hi);
+-	pack[1] = htonl(tv.tv_sec);
+-	pack[2] = htonl(tv.tv_usec);
+-	*s++ = '@';
++	if (!monotonic) {
++		gettimeofday(&tv, NULL);
++		sec_hi = (0x400000000000000aULL + tv.tv_sec) >> 32;
++		tv.tv_sec = (time_t)(0x400000000000000aULL) + tv.tv_sec;
++		tv.tv_usec *= 1000;
++		/* Network order is big-endian: most significant byte first.
++		 * This is exactly what we want here */
++		pack[0] = htonl(sec_hi);
++		pack[1] = htonl(tv.tv_sec);
++		pack[2] = htonl(tv.tv_usec);
++		*s++ = '@';
++	} else {
++		clock_gettime(CLOCK_MONOTONIC, &ts);
++		sec_hi = (0ULL + ts.tv_sec) >> 32;
++		/* Network order is big-endian: most significant byte first.
++		 * This is exactly what we want here */
++		pack[0] = htonl(sec_hi);
++		pack[1] = htonl(ts.tv_sec);
++		pack[2] = htonl(ts.tv_nsec);
++		*s++ = '%';
++	}
++
+ 	bin2hex(s, (char*)pack, 12);
+ }
+ 
+@@ -483,7 +498,7 @@ static void rmoldest(struct logdir *ld)
+ 		pause2cannot("open directory, want rotate", ld->name);
+ 	errno = 0;
+ 	while ((f = readdir(d))) {
+-		if ((f->d_name[0] == '@') && (strlen(f->d_name) == 27)) {
++		if ((f->d_name[0] == (monotonic ? '%' : '@')) && (strlen(f->d_name) == 27)) {
+ 			if (f->d_name[26] == 't') {
+ 				if (unlink(f->d_name) == -1)
+ 					warn2("can't unlink processor leftover", f->d_name);
+@@ -502,7 +517,7 @@ static void rmoldest(struct logdir *ld)
+ 	if (ld->nmax && (n > ld->nmax)) {
+ 		if (verbose)
+ 			bb_error_msg(INFO"delete: %s/%s", ld->name, oldest);
+-		if ((*oldest == '@') && (unlink(oldest) == -1))
++		if ((*oldest == (monotonic ? '%' : '@')) && (unlink(oldest) == -1))
+ 			warn2("can't unlink oldest logfile", ld->name);
+ 	}
+ }
+@@ -608,7 +623,7 @@ static int buffer_pwrite(int n, char *s,
+ 							ld->name);
+ 			errno = 0;
+ 			while ((f = readdir(d)))
+-				if ((f->d_name[0] == '@') && (strlen(f->d_name) == 27)) {
++				if ((f->d_name[0] == (monotonic ? '%' : '@')) && (strlen(f->d_name) == 27)) {
+ 					++j;
+ 					if (strcmp(f->d_name, oldest) < 0)
+ 						memcpy(oldest, f->d_name, 27);
+@@ -618,7 +633,7 @@ static int buffer_pwrite(int n, char *s,
+ 			closedir(d);
+ 			errno = ENOSPC;
+ 			if (j > ld->nmin) {
+-				if (*oldest == '@') {
++				if (*oldest == (monotonic ? '%' : '@')) {
+ 					bb_error_msg(WARNING"out of disk space, delete: %s/%s",
+ 							ld->name, oldest);
+ 					errno = 0;
+@@ -1024,9 +1039,9 @@ int svlogd_main(int argc, char **argv)
+ 
+ 	INIT_G();
+ 
+-	opt_complementary = "tt:vv";
+-	opt = getopt32(argv, "r:R:l:b:tv",
+-			&r, &replace, &l, &b, &timestamp, &verbose);
++	opt_complementary = "tt:vv:mm";
++	opt = getopt32(argv, "r:R:l:b:tvm",
++			&r, &replace, &l, &b, &timestamp, &verbose, &monotonic);
+ 	if (opt & 1) { // -r
+ 		repl = r[0];
+ 		if (!repl || r[1])
