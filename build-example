@@ -1,0 +1,9 @@
+#!/bin/sh
+./scripts/feeds update -a &&
+./scripts/feeds install -a &&
+echo "CONFIG_TARGET_ar71xx_generic_TLWR842=y\nCONFIG_PACKAGE_loee-SmartEye=y" > .config &&
+make defconfig &&
+make -j10
+
+# SmartEye-Service:
+# echo "CONFIG_TARGET_ar71xx_generic_TLMR3220=y\nCONFIG_PACKAGE_loee-SmartEye-Service=y" >| .config &&
