@@ -2679,40 +2679,40 @@ config BUSYBOX_DEFAULT_FEATURE_SHOW_THREADS
 	default n
 config BUSYBOX_DEFAULT_CHPST
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_SETUIDGID
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_ENVUIDGID
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_ENVDIR
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_SOFTLIMIT
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_RUNSV
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_RUNSVDIR
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_FEATURE_RUNSVDIR_LOG
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_SV
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_SV_DEFAULT_SERVICE_DIR
 	string
-	default ""
+	default "/service"
 config BUSYBOX_DEFAULT_SVC
 	bool
 	default n
 config BUSYBOX_DEFAULT_SVLOGD
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_CHCON
 	bool
 	default n
