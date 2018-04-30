@@ -10,7 +10,7 @@ HWCLOCK=/sbin/hwclock
 boot() {
 	start && exit 0
 
-	local maxtime="$(maxtime)"
+	local maxtime="$(find /root/log -type f -exec date -r {} +%s \; | sort -nr | head -n1)"
 	local curtime="$(date +%s)"
 	[ $curtime -lt $maxtime ] && date -s @$maxtime
 }
@@ -24,11 +24,3 @@ stop() {
 		logger -t sysfixtime "saved '$(date)' to $RTC_DEV"
 }
 
-maxtime() {
-	local file newest
-
-	for file in $( find /etc -type f ) ; do
-		[ -z "$newest" -o "$newest" -ot "$file" ] && newest=$file
-	done
-	[ "$newest" ] && date -r "$newest" +%s
-}
