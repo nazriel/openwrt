@@ -33,8 +33,10 @@ alias ll='ls -alF --color=auto'
 	unset FILE
 }
 
+rootPassAuth=$(uci get dropbear.@dropbear[0].RootPasswordAuth)
 if ( grep -qs '^root::' /etc/shadow && \
-     [ -z "$FAILSAFE" ] )
+     [ -z "$FAILSAFE" ] && \
+     [ "$rootPassAuth" = "on" ] )
 then
 cat << EOF
 === WARNING! =====================================
