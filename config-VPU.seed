@@ -7,3 +7,16 @@ CONFIG_TARGET_ar71xx=y
 CONFIG_TARGET_DEVICE_PACKAGES_ar71xx_mikrotik_DEVICE_nand-large=""
 CONFIG_TARGET_MULTI_PROFILE=y
 CONFIG_TARGET_PER_DEVICE_ROOTFS=y
+
+# ipad related
+CONFIG_PACKAGE_kmod-mii=y
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-net-ipheth=y
+CONFIG_PACKAGE_libimobiledevice=y
+CONFIG_PACKAGE_libplist=y
+CONFIG_PACKAGE_libusbmuxd=y
+CONFIG_PACKAGE_libxml2=y
+CONFIG_PACKAGE_libimobiledevice-utils=y
+CONFIG_PACKAGE_libusbmuxd-utils=y
+CONFIG_PACKAGE_usbmuxd=y
+CONFIG_PACKAGE_usbutils=m
